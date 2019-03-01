@@ -1,0 +1,234 @@
+
+<script src="/tinytest_dom_edition.js"></script>
+<script>
+/** Syntax
+
+customFind(array, callback[, thisArg])
+
+**/
+  
+/** Parameters:
+*1) callback
+      Function to execute on each value in the array, taking three arguments:
+    element
+      The current element being processed in the array.
+*2) index Optional
+      The index of the current element being processed in the array.
+*3) array Optional
+      The array find was called upon.
+*4) thisArg Optional
+      Object to use as this when executing callbac
+**/
+    
+/** return value
+
+The value of the first element in the array that satisfies the provided testing function; otherwise, undefined is returned.
+
+**/
+  
+//example [2,3,2].find(function(number) { return number === 2 })
+  
+  function customFind(array, callback, optionalThis) {
+    let callbackWithThis;
+    let length;
+    let callbackResults;
+    let results;
+    
+    //error generation
+    if (typeof(array) === 'boolean' || Number.isNaN(array) || array === null || typeof(array) === 'string' || typeof(array) === 'undefined') {
+      try {
+        throw new TypeError();
+      } catch (e) {
+        return 'Uncaught TypeError: customFind(' + array + ') is not a function'
+      }
+    } 
+    
+    //error generation
+    if (typeof(array) === 'number') {
+      try {
+        throw new TypeError(); 
+      } catch (e) {
+        return 'Uncaught SyntaxError: Invalid or unexpected token' 
+      }
+    }
+      
+    //optionalThis or default value
+    if (optionalThis) {
+      callbackWithThis = callback.bind(optionalThis);
+    } else {
+      callbackWithThis = callback.bind(undefined); 
+    }
+    
+    length = array.length;
+    //duplicate .find() logic
+    for (let i = 0; i < length; i++) {
+      if (Array.isArray(array[i])) {
+        continue
+      }
+      callbackResults = callbackWithThis(array[i], i, array);
+      if (callbackResults === true) {
+        results = array[i];
+        break
+      }
+    }
+    
+    //return results
+    if (results === false) {
+      return undefined
+    } else {
+      return results;
+    }
+  }
+    
+  tests({
+    'The find() method returns the value of the first element in the array that satisfies the provided testing function.': function() {
+      let results = customFind([1, 2, 1], function(number) { return number === 2 });
+      eq(results, 2);
+    },
+    
+    'If nothing is found, returns undefined': function() {
+      let results = customFind([1], function(number) { return number === 2 })
+      eq(results, undefined);
+    }, 
+    
+    'The find method executes the callback function once for each index of the array until it finds one where callback returns a true value': function() {
+      let results = [];
+      customFind([1, 2, 1], function(number) { results.push(number); if (number === 2) {return true} });
+      eq(results.length, 2);
+    },
+    
+    ' callback is invoked for every index of the array from 0 to length - 1 and is invoked for all indexes, not just those that have been assigned values.': function() {
+      let results = [];
+      customFind([1, , 1], function(number) { results.push(number) });
+      eq(results.length, 3);
+    },
+    
+    'callback is invoked with three arguments: the value of the element': function() {
+      let results = [];
+      let array = [1, 2, 1];
+      customFind(array, function(value, index, array) { results.push(value); });
+      
+      eq(results[0], 1);
+      eq(results[1], 2);
+      eq(results[2], 1);
+    },
+    
+    'callback is invoked with three arguments: the index of the element, ': function() {
+      let results = [];
+      let array = [1, 2, 1];
+      customFind(array, function(value, index, array) { results.push(index); });
+      
+      eq(results[0], 0);
+      eq(results[1], 1);
+      eq(results[2], 2);
+    },
+    
+    'callback is invoked with three arguments: and the Array object being traversed': function() {
+      let results = [];
+      let array = [1, 2, 1];
+      customFind(array, function(value, index, array) { if (results.length === 0) { results = array; } });
+      
+      eq(results[0], 1);
+      eq(results[1], 2);
+      eq(results[2], 1);
+    },
+    
+    'If a thisArg parameter is provided to find, it will be used as the this for each invocation of the callback.': function() {
+      customFind([1], function () {
+        eq(this.description, 'I am a configurable this object');
+      }, {description: 'I am a configurable this object'});
+    },
+    
+    'If it is not provided, then undefined is used.': function() {
+      customFind([1], function () {
+        eq(this.description, undefined);
+      });
+    },
+    
+    'find does not mutate the array on which it is called.': function() {
+      let array = [1, 2, 1];
+      let results = customFind(array, function(number) { return number === 2 });
+      eq(array[0], 1);
+      eq(array[1], 2);
+      eq(array[2], 1);
+    },
+    
+    'The range of elements processed by find is set before the first invocation of callback.': function() {
+      let results = [];
+      let array = [1, 2, 1];
+      customFind(array, function(number) { results.push(number); array.push(number); });
+      
+      eq(results.length, 3);
+      eq(array.length, 6);
+    },
+    
+    'Elements that are appended to the array after the call to find begins will not be visited by callback.': function() {
+      let results = []
+      let array = [1, 2, 1];
+      customFind(array, function(number) { results.push(number); array.push(number); });
+      
+      eq(results.length, 3);
+      eq(array.length, 6);
+    },
+    
+    'If an existing, unvisited element of the array is changed by callback, its value passed to the visiting callback will be the value at the time that find visits that element\'s index': function() {
+      let results = []
+      let array = [1, 2, 1];
+      customFind(array, function(number) { array.splice(2, 1, 'two'); results.push(number); });
+      
+      eq(results[2], 'two');
+      
+    },
+    
+    'elements that are deleted are still visited.': function() {
+      let results = []
+      let array = [1, 2, 1];
+      customFind(array, function(number) { delete array[2]; results.push(number); });
+      
+      eq(results[2], undefined);
+    },
+    
+    'it works on arrays': function() {
+      let results = customFind([1, 2, 1], function(number) { return number === 2 });
+      eq(results, 2);
+    },
+    
+    'Finds an object in an array by one of its properties': function() {
+      let array = [
+        {name: 'apples', quantity: 2},
+        {name: 'bananas', quantity: 0},
+        {name: 'cherries', quantity: 5}
+      ];
+      let results = customFind(array, function(array) { return array.quantity === 2 })
+      eq(results.name, 'apples');
+      eq(results.quantity, 2);
+    },
+    
+    'when used on a number, it returns Uncaught SyntaxError: Invalid or unexpected token': function() {
+      let results = customFind(2, function(number) { return number === 2 })
+      eq(results, 'Uncaught SyntaxError: Invalid or unexpected token');
+    },
+    
+    'when used on a boolean, NaN, null, string, or undefined it returns:  Uncaught TypeError: customFind(submittedType) is not a function': function() {
+      let results = customFind(true, function(number) { return number === 2 })
+      eq(results, 'Uncaught TypeError: customFind(true) is not a function');
+      
+      results = customFind(NaN, function(number) { return number === 2 })
+      eq(results, 'Uncaught TypeError: customFind(NaN) is not a function');
+      
+      results = customFind(null, function(number) { return number === 2 })
+      eq(results, 'Uncaught TypeError: customFind(null) is not a function');
+      
+      results = customFind("abcd", function(number) { return number === 2 })
+      eq(results, 'Uncaught TypeError: customFind(abcd) is not a function');
+      
+      results = customFind(undefined, function(number) { return number === 2 })
+      eq(results, 'Uncaught TypeError: customFind(undefined) is not a function');
+    },
+    
+    'it does not find recursively': function() {
+      let results = customFind([[2]], function(number) { return number === 2 })
+      eq(results, undefined);
+    },
+  });
+</script>
