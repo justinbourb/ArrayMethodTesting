@@ -2,7 +2,7 @@
 <script>
 /** Syntax
 
-findIndex(callback(element[, index[, array]])[, thisArg])
+every(callback(element[, index[, array]])[, thisArg])
 
 **/
   
@@ -14,7 +14,7 @@ findIndex(callback(element[, index[, array]])[, thisArg])
   3) indexOptional
     The index of the current element being processed in the array.
   4) arrayOptional
-    The array findIndex was called upon.
+    The array every was called upon.
 5) thisArgOptional
   Optional. Object to use as this when executing callback.
 **/
@@ -27,12 +27,12 @@ An index in the array if an element passes the test; otherwise, -1.
   
 //example 
   
-  
-  function findIndex(array, callback, optionalThis) {
+  function every(array, callback, optionalThis) {
     let callbackWithThis;
     let length;
     let callbackResults;
     let results;
+    let objectKeys;
     
     //error generation
     if (typeof(array) === 'boolean' || Number.isNaN(array) || array === null || typeof(array) === 'string' || typeof(array) === 'undefined') {
@@ -62,17 +62,24 @@ An index in the array if an element passes the test; otherwise, -1.
     length = array.length;
     //duplicate .find() logic
     for (let i = 0; i < length; i++) {
+      objectKeys = Object.keys(array);
       if (Array.isArray(array[i])) {
         continue
       }
+      
+      //skip blank values, but not null or undefined values
+      if(objectKeys.indexOf(i.toString()) === -1) {
+        continue 
+      }
+      
       callbackResults = callbackWithThis(array[i], i, array);
-      if (callbackResults === true) {
-        return i;
+      if (callbackResults === false) {
+        return false;
       }
     }
     
-    //if no results return -1
-    return -1
+    //if every index of callback is true, return true
+    return true
   }
   
   //used for tests
@@ -81,20 +88,24 @@ An index in the array if an element passes the test; otherwise, -1.
   }
  
   tests({
-    'it returns the index of the first element where the callback returns true': function() {
-      let array1 = [5, 12, 8, 130, 44];
-      eq(findIndex(array1, isLargeNumber), 3);
+    'it returns true if all elements in the array pass the test implemented by the provided function': function() {
+      let array1 = [1, 2];
+      let results;
+      results = every(array1, function(number) { return number < 13; })
+      eq(results, true);
     },
     
-    'Otherwise, it returns -1, indicating no element passed the test.': function() {
-      let array1 = [5];
-      eq(findIndex(array1, isLargeNumber), -1);
+    'Otherwise, it returns false': function() {
+      let array1 = [1, 14];
+      let results;
+      results = every(array1, function(number) { return number < 13; })
+      eq(results, false);
     },
     
     'callback is invoked with 3 arguments: The value of the element': function() {
       let results = [];
       let array = [1, 2, 1];
-      findIndex(array, function(value, index, array) { results.push(value); });
+      every(array, function(value, index, array) { results.push(value); });
       
       eq(results[0], 1);
       eq(results[1], 2);
@@ -104,7 +115,7 @@ An index in the array if an element passes the test; otherwise, -1.
     'callback is invoked with 3 arguments: The index of the element': function() {
       let results = [];
       let array = [1, 2, 1];
-      findIndex(array, function(value, index, array) { results.push(index); });
+      every(array, function(value, index, array) { results.push(index); });
       
       eq(results[0], 0);
       eq(results[1], 1);
@@ -114,64 +125,73 @@ An index in the array if an element passes the test; otherwise, -1.
     'callback is invoked with 3 arguments: The Array object being traversed': function() {
       let results = [];
       let array = [1, 2, 1];
-      findIndex(array, function(value, index, array) { if (results.length === 0) { results = array; } });
+      every(array, function(value, index, array) { if (results.length === 0) { results = array; } });
       
       eq(results[0], 1);
       eq(results[1], 2);
       eq(results[2], 1);
     },
     
-    'callback is called even for indexes of entries not present in the array.': function() {
+    'callback does not visit indexes of entries not present in the array.': function() {
+      let array = [1, null, undefined, , 1]
       let results = [];
-      findIndex([1, , 1], function(number) { results.push(number) });
+      every(array, function(number) { results.push(number); return number < 13; })
       eq(results.length, 3);
     },
     
     'If a thisArg parameter is provided, it will be used as the this inside each invocation of the callback.': function() {
-      findIndex([1], function () {
+      every([1], function () {
         eq(this.description, 'I am a configurable this object');
       }, {description: 'I am a configurable this object'});
     },
     
     'If it is not provided, then undefined is used.': function() {
-      findIndex([1], function () {
+      every([1], function () {
         eq(this.description, undefined);
       });
     },
     
     'it does not mutate the array on which it is called.': function() {
       let array1 = [1, 2];
-      findIndex(array1, isLargeNumber);
+      every(array1, isLargeNumber);
       eq(array1[0], 1);
       eq(array1[1], 2);
     },
     
     'The range of elements processed is set before the first invocation of callback.': function() {
       let array1 = [1, 2];
-      eq(findIndex(array1, function(number) { array1.push(500); return number > 13; }), -1);
+      let results = [];
+      every(array1, function(number) { results.push(number); array1.push(number); return number < 40; });
+      eq(results.length, 2);
     },
     
     'If an existing, unvisited element of the array is changed by callback, its value passed to the visiting callback will be the value at the time that find visits that element\'s index': function() {
       let array1 = [1, 2];
-      eq(findIndex(array1, function(number) { array1[1] = 500; return number > 13; }), 1);
+      let results = [];
+      every(array1, function(number) { array1[1] = 500; results.push(number); return number < 13; })
+      eq(results[1], 500);
     },
     
-    'elements that are deleted are still visited.': function() {
+    'elements that are deleted are not visited.': function() {
       let results = []
       let array = [1, 2, 1];
-      findIndex(array, function(number) { delete array[2]; results.push(number); });
+      every(array, function(number) { delete array[2]; results.push(number); });
       
       eq(results[2], undefined);
+      eq(results.length, 2);
     },
     
-    'Finds an object in an array by one of its properties': function() {
-      let array = [
-        {name: 'apples', quantity: 2},
-        {name: 'bananas', quantity: 0},
-        {name: 'cherries', quantity: 5}
-      ];
-      let results = findIndex(array, function(array) { return array.quantity === 2 })
-      eq(results, 0);
+    'it stops visiting elements once a false value is returned': function() {
+      let array1 = [1, 500, 2];
+      let results = [];
+      every(array1, function(number) { results.push(number); return number < 13; })
+      eq(results.length, 2);
+    },
+    
+    'It should return true for an empty array.': function() {
+      let array1 = [];
+      let results = every(array1, function(number) { results.push(number); return number > 13; })
+      eq(results, true);
     },
   });
 </script>
