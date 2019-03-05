@@ -1,0 +1,195 @@
+<script src="/tinytest_dom_edition.js"></script>
+<script>
+/** Syntax
+
+some(callback(element[, index[, array]])[, thisArg])
+
+**/
+  
+/** Parameters:
+1) callback
+  A function to execute on each value in the array until the function returns true, indicating the desired element was found. It takes 3 arguments:
+  2) element
+    The current element being processed in the array.
+  3) indexOptional
+    The index of the current element being processed in the array.
+  4) arrayOptional
+    The array some was called upon.
+5) thisArgOptional
+  Optional. Object to use as this when executing callback.
+**/
+    
+/** return value
+
+An index in the array if an element passes the test; otherwise, -1.
+
+**/
+  
+//example 
+  
+  function some(array, callback, optionalThis) {
+    let callbackWithThis;
+    let length;
+    let callbackResults;
+    let results;
+    let objectKeys;
+    
+    //error generation
+    if (typeof(array) === 'boolean' || Number.isNaN(array) || array === null || typeof(array) === 'string' || typeof(array) === 'undefined') {
+      try {
+        throw new TypeError();
+      } catch (e) {
+        return 'Uncaught TypeError: customFind(' + array + ') is not a function'
+      }
+    } 
+    
+    //error generation
+    if (typeof(array) === 'number') {
+      try {
+        throw new TypeError(); 
+      } catch (e) {
+        return 'Uncaught SyntaxError: Invalid or unexpected token' 
+      }
+    }
+      
+    //optionalThis or default value
+    if (optionalThis) {
+      callbackWithThis = callback.bind(optionalThis);
+    } else {
+      callbackWithThis = callback.bind(undefined); 
+    }
+    
+    length = array.length;
+    //duplicate .find() logic
+    for (let i = 0; i < length; i++) {
+      objectKeys = Object.keys(array);
+      if (Array.isArray(array[i])) {
+        continue
+      }
+      
+      //skip blank values, but not null or undefined values
+      if(objectKeys.indexOf(i.toString()) === -1) {
+        continue 
+      }
+      
+      if (callbackWithThis(array[i], i, array)) {
+       return true
+      }
+    }
+    return false
+    
+  }
+  
+  //used for tests
+  function isLargeNumber(element) {
+    return element > 13;
+  }
+ 
+  tests({
+    'it returns true after the first element to return a truthy value': function() {
+      let array1 = [1, 2];
+      let results = [];
+      eq(some(array1, function(number) { results.push(number); return number < 13; }), true);
+      eq(results.length, 1);
+    },
+    
+    'Otherwise, it returns false': function() {
+      let array1 = [15, 14];
+      let results;
+      results = some(array1, function(number) { return number < 13; })
+      eq(results, false);
+    },
+    
+    'callback is invoked with 3 arguments: The value of the element': function() {
+      let results = [];
+      let array = [1, 2, 1];
+      some(array, function(value, index, array) { results.push(value); });
+      
+      eq(results[0], 1);
+      eq(results[1], 2);
+      eq(results[2], 1);
+    },
+    
+    'callback is invoked with 3 arguments: The index of the element': function() {
+      let results = [];
+      let array = [1, 2, 1];
+      some(array, function(value, index, array) { results.push(index); return value > 10; });
+      
+      eq(results[0], 0);
+      eq(results[1], 1);
+      eq(results[2], 2);
+    },
+    
+    'callback is invoked with 3 arguments: The Array object being traversed': function() {
+      let results = [];
+      let array = [1, 2, 1];
+      some(array, function(value, index, array) { if (results.length === 0) { results = array; } });
+      
+      eq(results[0], 1);
+      eq(results[1], 2);
+      eq(results[2], 1);
+    },
+    
+    'callback does not visit indexes of entries not present in the array.': function() {
+      let array = [1, null, undefined, , 1]
+      let results = [];
+      some(array, function(number) { results.push(number); return number > 13; })
+      eq(results.length, 4);
+    },
+    
+    'If a thisArg parameter is provided, it will be used as the this inside each invocation of the callback.': function() {
+      some([1], function () {
+        eq(this.description, 'I am a configurable this object');
+      }, {description: 'I am a configurable this object'});
+    },
+    
+    'If it is not provided, then undefined is used.': function() {
+      some([1], function () {
+        eq(this.description, undefined);
+      });
+    },
+    
+    'it does not mutate the array on which it is called.': function() {
+      let array1 = [1, 2];
+      some(array1, isLargeNumber);
+      eq(array1[0], 1);
+      eq(array1[1], 2);
+    },
+    
+    'The range of elements processed is set before the first invocation of callback.': function() {
+      let array1 = [1, 2];
+      let results = [];
+      some(array1, function(number) { results.push(number); array1.push(number); return number > 40; });
+      eq(results.length, 2);
+    },
+    
+    'If an existing, unvisited element of the array is changed by callback, its value passed to the visiting callback will be the value at the time that find visits that element\'s index': function() {
+      let array1 = [1, 2];
+      let results = [];
+      some(array1, function(number) { array1[1] = 500; results.push(number); return number > 13; })
+      eq(results[1], 500);
+    },
+    
+    'elements that are deleted are not visited.': function() {
+      let results = []
+      let array = [1, 2, 1];
+      some(array, function(number) { delete array[2]; results.push(number); });
+      
+      eq(results[2], undefined);
+      eq(results.length, 2);
+    },
+    
+    'it stops visiting elements once a true value is returned': function() {
+      let array1 = [500, 1, 2];
+      let results = [];
+      some(array1, function(number) { results.push(number); return number < 13; })
+      eq(results.length, 2);
+    },
+    
+    'It should return false for an empty array.': function() {
+      let array1 = [];
+      let results = some(array1, function(number) { results.push(number); return number > 13; })
+      eq(results, false);
+    },
+  });
+</script>
