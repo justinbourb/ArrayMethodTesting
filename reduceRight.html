@@ -38,8 +38,9 @@ An index in the array if an element passes the test; otherwise, -1.
   function reduceRight(array, callback, initialValue) {
     let callbackWithThis;
     let length;
-    let results;
     let objectKeys;
+    let accumulator;
+    let i;
     
     //error generation
     if (typeof(array) === 'boolean' || Number.isNaN(array) || array === null || typeof(array) === 'string' || typeof(array) === 'undefined') {
@@ -59,21 +60,51 @@ An index in the array if an element passes the test; otherwise, -1.
       }
     }
     
+    //'calling it upon an empty array, without an initial value results in an error'
+    if (!initialValue && array.length === 0) {
+      try {
+        throw new TypeError(); 
+      } catch (e) {
+        return 'Uncaught TypeError: Reduce of empty array with no initial value'
+      }
+    }
+    
+    //'If the array has only one element (regardless of position) and no initialValue was provided, return the one element'
+    if (Object.keys(array).length === 1 && !initialValue) {
+      return array[Object.keys(array)[0]]
+    }
+    
+    
+    //'The range of elements processed is set before the first invocation of callback.'
     length = array.length;
-    //duplicate .find() logic
-    for (let i = 0; i < length; i++) {
+    
+    //accumlator && currentValue === array[i] (at this point it's enough to set i)
+    if (initialValue) {
+      accumulator = initialValue;
+      i = length - 1;
+    } else {
+      accumulator = array[length - 1]; 
+      i = length - 2;
+    }
+    
+    //'calling it upon an empty array, with an initial value returns initial value'
+    if (initialValue && array.length === 0) {
+      return initialValue
+    }
+    
+    //duplicate .reduceRight() logic
+    for (i ; i >= 0; i--) {
       objectKeys = Object.keys(array);
       
       //skip blank values, but not null or undefined values
       if(objectKeys.indexOf(i.toString()) === -1) {
         continue 
       }
+      accumulator = callback(accumulator, array[i], i, array);
       
-      if (callbackWithThis(accumulator, currentValue, i, array)) {
-       return true
-      }
     }
-    return false
+    
+    return accumulator
     
   }
   
@@ -86,13 +117,18 @@ An index in the array if an element passes the test; otherwise, -1.
     'it returns the value that results from the reduction.': function() {
       let array = [[0, 1], [2, 3], [4, 5]];
       let results = reduceRight(array, (accumulator, currentValue) => accumulator.concat(currentValue));
-      eq(results, [4, 5, 2, 3, 0, 1]);
+      eq(results[0], 4);
+      eq(results[1], 5);
+      eq(results[2], 2);
+      eq(results[3], 3);
+      eq(results[4], 0);
+      eq(results[5], 1);
     },
     
     'calling it upon an empty array, without an initial value results in an error': function() {
       let array = [];
       let results = reduceRight(array, (accumulator, currentValue) => accumulator.concat(currentValue));
-      eq(results, 'some error');
+      eq(results, 'Uncaught TypeError: Reduce of empty array with no initial value');
     },
     
     'calling it upon an empty array, with an initial value returns initial value': function() {
@@ -126,40 +162,39 @@ An index in the array if an element passes the test; otherwise, -1.
     'callback is invoked with 4 arguments: The accumlator The value previously returned in the last invocation of the callback, or initialValue, if supplied.': function() {
       let array = [0, 1, 2, 3, 4];
       let accumulatorTest = [];
-      let results = reduceRight(function(accumulator, currentValue, index, array) {
+      let results = reduceRight(array, function(accumulator, currentValue, index, array) {
         accumulatorTest.push(accumulator);
         return accumulator + currentValue;
       });
       
-      eq(accumulatorTest[0], 7);
-      eq(accumulatorTest[1], 9);
-      eq(accumulatorTest[2], 10);
+      eq(accumulatorTest[0], 4);
+      eq(accumulatorTest[1], 7);
+      eq(accumulatorTest[2], 9);
+      eq(accumulatorTest[3], 10);
     },
     
     'callback is invoked with 4 arguments: The currentValue of the array': function() {
       let results = [];
       let array = [1, 2, 1];
-      reduceRight(array, function(value, index, array) { results.push(value); });
+      reduceRight(array, function(accumulator, currentValue, index, array) { results.push(currentValue); });
       
-      eq(results[0], 1);
-      eq(results[1], 2);
-      eq(results[2], 1);
+      eq(results[0], 2);
+      eq(results[1], 1);
     },
     
     'callback is invoked with 4 arguments: The index of the element': function() {
       let results = [];
       let array = [1, 2, 1];
-      reduceRight(array, function(value, index, array) { results.push(index); return value > 10; });
+      reduceRight(array, function(accumulator, currentValue, index, array) { results.push(index); });
       
-      eq(results[0], 0);
-      eq(results[1], 1);
-      eq(results[2], 2);
+      eq(results[0], 1);
+      eq(results[1], 0);
     },
     
     'callback is invoked with 4 arguments: The Array object being traversed': function() {
       let results = [];
       let array = [1, 2, 1];
-      reduceRight(array, function(value, index, array) { if (results.length === 0) { results = array; } });
+      reduceRight(array, function(accumulator, currentValue, index, array) { if (results.length === 0) { results = array; } });
       
       eq(results[0], 1);
       eq(results[1], 2);
@@ -167,10 +202,12 @@ An index in the array if an element passes the test; otherwise, -1.
     },
     
     'callback does not visit indexes of entries not present in the array.': function() {
-      let array = [1, null, undefined, , 1]
-      let results = [];
-      reduceRight(array, function(number) { results.push(number); return number > 13; })
-      eq(results.length, 4);
+      let array = [[1], [null], [undefined], , [1]]
+      let results = reduceRight(array, function(accumulator, currentValue, index, array) { return accumulator.concat(currentValue) });
+      eq(results[0], 1);
+      eq(results[1], undefined);
+      eq(results[2], null);
+      eq(results[3], 1);
     },
     
     'it does not mutate the array on which it is called.': function() {
@@ -207,7 +244,7 @@ An index in the array if an element passes the test; otherwise, -1.
       let array = [6];
       let accumulatorTest = [];
       let results = reduceRight(array, function(accumulator, currentValue) { accumulatorTest.push(accumulator) }, 5);
-      eq(accumlatorTest[0], 5);
+      eq(accumulatorTest[0], 5);
     },
     
     'If an initialValue was provided in the call to reduceRight, currentValue will initially be equal to the last value in the array.': function() {
