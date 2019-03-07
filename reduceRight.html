@@ -220,14 +220,14 @@ An index in the array if an element passes the test; otherwise, -1.
     'The range of elements processed is set before the first invocation of callback.': function() {
       let array1 = [1, 2];
       let results = [];
-      reduceRight(array1, function(number) { results.push(number); array1.push(number); return number > 40; });
-      eq(results.length, 2);
+      reduceRight(array1, function(number) { results.push(number); array1.push(number);});
+      eq(results.length, 1);
     },
     
     'If an existing, unvisited element of the array is changed by callback, its value passed to the visiting callback will be the value at the time that find visits that element\'s index': function() {
-      let array1 = [1, 2];
+      let array1 = [1, 2, 3];
       let results = [];
-      reduceRight(array1, function(number) { array1[1] = 500; results.push(number); return number > 13; })
+      reduceRight(array1, function(accumulator, currentValue, index, array) { array1[0] = 500; results.push(currentValue); })
       eq(results[1], 500);
     },
     
