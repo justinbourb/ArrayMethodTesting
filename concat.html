@@ -1,0 +1,176 @@
+<script src="/tinytest_dom_edition.js"></script>
+<script>
+/** 
+Purpose:
+The concat() method is used to merge two or more arrays and/or values. 
+This method does not change the existing arrays, but instead returns a new array.
+
+Syntax:
+concat(originalArray, arrayToConcat, valueToConcat);
+  
+Parameters:
+1) value (Optional)
+  Arrays and/or values to concatenate into a new array. 
+  If value is undefined, concat returns a shallow copy of the existing array on which it is called.
+  Value can be an array, string, null, undefined, boolean value or number.
+  If value === array, the array can contain empty values.
+    
+Return value:
+A new array.
+
+Example 1
+The following code concatenates two arrays::
+var array1 = ['a', 'b', 'c'];
+var array2 = ['d', 'e', 'f'];
+
+console.log(concat(array1, array2));
+// expected output: Array ["a", "b", "c", "d", "e", "f"]
+
+Example 2:
+The following code concatenates nested arrays and demonstrates retention of references:
+
+const num1 = [[1]];
+const num2 = [2, [3]];
+
+const numbers = concat(num1, num2);
+
+console.log(numbers);
+// results in [[1], 2, [3]]
+
+// modify the first element of num1
+num1[0].push(4);
+
+console.log(numbers);
+// results in [[1, 4], 2, [3]]
+**/
+  
+/**
+
+//HOW TO: Add items to the results array and keep object references intact.
+//check if arguement submitted is an array
+//appears to also work for objects
+if (Array.isArray(argument)) {
+  //add each item from the argument array to the results
+  //this keeps the object reference intact
+  arguement.forEach(function() { results.push(item); } )
+}
+**/
+
+//...itemsToConcat uses the ES6 feature rest to accept any number of inputs
+function concat(...args) {
+  let results = [];
+  for (let i=0; i<args.length; i++) {
+    if (Array.isArray(args[i])) {
+      //add each item from the argument array to the results, this keeps the object reference intact
+      args[i].forEach(function(item) { results.push(item); });
+    } else {
+      results.push(args[i]);
+    }
+  }
+  return results
+}
+
+  
+tests({
+  'it does not mutate the original array': function() {
+    let test = [1, 2];
+    concat(test, 3);
+    eq(test[0], 1);
+    eq(test[1], 2);
+    eq(test.length, 2);
+  },
+  
+  'it returns an array': function() {
+    let test = [1, 2];
+    let results = concat(test, 3);
+    eq(Array.isArray(results), true);
+  },
+  
+  'it returns a shallow copy of the original array it was called on': function() {
+    /**Explanation: If any of the fields of the object are references to other objects, 
+    just the reference addresses are copied i.e., only the memory address is copied.
+    **/
+    let test = [1, 2];
+    let toConcat = [[3]];
+    let results = concat(test, toConcat);
+    eq(results[2][0], toConcat[0][0]);
+  },
+  
+  'it adds items in the same order as the arguments provided': function() {
+    let test = [1, 2];
+    let toConcat = [3];
+    let results = concat(test, toConcat, 4, 5);
+    eq(results[0], 1);
+    eq(results[1], 2);
+    eq(results[2], 3);
+    eq(results[3], 4);
+    eq(results[4], 5);
+  },
+  
+  'it does not recurse into nested array arguements': function() {
+    //I assume this means nested arrays get added as arrays, they are not flattened in the results
+    let test = [1, 2];
+    let toConcat = [[3]];
+    let results = concat(test, toConcat);
+    eq(results[2][0], toConcat[0][0]);
+  },
+  
+  'it does not alter the this value of any of the arguments': function() {
+    let test = {
+      prop: 42,
+      func: function() {
+        return this.prop;
+      }
+    };
+    let results = concat([1], test);
+    eq(results[1].func(), 42);
+  },
+  
+  'Both the original and new array refer to the same object references (and not the actual object)': function() {
+    /**
+    Additional description:
+    Object references (and not the actual object): concat copies object references into the new array. 
+    Both the original and new array refer to the same object. That is, if a referenced object is modified,
+    the changes are visible to both the new and original arrays. This includes elements of array 
+    arguments that are also arrays.
+    **/
+    let test = [1, 2];
+    let toConcat = [[3]];
+    let results = concat(test, toConcat);
+    eq(results[2][0], toConcat[0][0]);
+    toConcat[0][0] = 'changed';
+    eq(results[2][0], 'changed');
+  },
+  
+  'any operation on the new array (except operations on elements which are object references) will have no effect on the original arrays, and vice versa.': function() {
+    let test = [1, 2];
+    let toConcat = [[3]];
+    let results = concat(test, toConcat);
+    results[0] = 'changed';
+    eq(test[0], 1);
+  },
+
+  'If only one argument, return a new array with element(s) equal to element(s) in the argument array.': function () {
+    let results = concat([1]);
+    eq(results[0], 1);
+    eq(results.length, 1);
+  },
+  
+  'it handles various data types as arguements': function() {
+    //TODO: my function does not accept empty parameters
+    let test = [1];
+    let toConcat = [2];
+    let results = concat(test, toConcat, 'three', function() {}, null, undefined, true, {}, NaN);
+    eq(results[0], 1);
+    eq(results[1], 2);
+    eq(results[2], 'three');
+    eq(typeof(results[3]), 'function');
+    eq(results[4], null);
+    eq(results[5], undefined);
+    eq(results[6], true);
+    eq(typeof(results[7]), 'object');
+    eq(isNaN(results[8]), true);
+  },
+
+});
+</script>
