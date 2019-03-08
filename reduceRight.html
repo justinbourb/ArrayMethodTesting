@@ -285,6 +285,19 @@ An index in the array if an element passes the test; otherwise, -1.
       let currentValueTest = [];
       let results = reduceRight(array, function(accumulator, currentValue) { currentValueTest.push(currentValue) });
       eq(currentValueTest[0], 7);
+    },
+    
+    '16.It should work for an array-like object.': function () {
+      var object = {
+        length: 3,
+        0: 0,
+        1: 1,
+        2: 2
+      };
+      var result = reduceRight(object, function(previousValue, currentValue) {
+        return previousValue + currentValue;
+      });
+      eq(result, 3);
     }
         
     
