@@ -44,25 +44,21 @@ console.log(numbers);
 // results in [[1, 4], 2, [3]]
 **/
   
-/**
-
-//HOW TO: Add items to the results array and keep object references intact.
-//check if arguement submitted is an array
-//appears to also work for objects
-if (Array.isArray(argument)) {
-  //add each item from the argument array to the results
-  //this keeps the object reference intact
-  arguement.forEach(function() { results.push(item); } )
-}
-**/
-
 //...itemsToConcat uses the ES6 feature rest to accept any number of inputs
 function concat(...args) {
   let results = [];
-  for (let i=0; i<args.length; i++) {
+  for (let i = 0; i < args.length; i++) {
     if (Array.isArray(args[i])) {
-      //add each item from the argument array to the results, this keeps the object reference intact
-      args[i].forEach(function(item) { results.push(item); });
+      //need to use a for loop here, forEach does not access empty items
+      for (let j = 0; j < args[i].length; j++) { 
+        if (j in args[i]) {
+          //add each item from the argument array to the results, this keeps the object reference intact
+          results.push(args[i][j]); 
+        } else {
+          //if an item is empty, increasing the length adds an empty item to results
+          results.length++;
+        }
+      };
     } else {
       results.push(args[i]);
     }
@@ -70,6 +66,12 @@ function concat(...args) {
   return results
 }
 
+  // for (var j = 0; j < arguments[i].length; j++) {
+  //         if (j in arguments[i]) {
+  //           concated.push(arguments[i][j]);
+  //         } else {
+  //           concated.length++;
+  //         }
   
 tests({
   'it does not mutate the original array': function() {
@@ -171,6 +173,13 @@ tests({
     eq(typeof(results[7]), 'object');
     eq(isNaN(results[8]), true);
   },
+  
+  'It should accept holes.': function () {
+      var array = [,,,];
+      var results = concat(array, 1);
+      eq(results.length, 4);
+      eq(results[3], 1);
+  }
 
 });
 </script>
