@@ -1,0 +1,143 @@
+<script src="/tinytest_dom_edition.js"></script>
+<script>
+/** 
+Purpose:
+  The lastIndexOf() method returns the last index at which a given element can be found in the array, or -1 if it is not present. 
+  The array is searched backwards, starting at fromIndex.
+
+Syntax:
+  lastIndexOf(array, searchElement[, fromIndex])
+  
+Parameters:
+  1) searchElement
+    Element to locate in the array.
+    
+  2) fromIndex Optional
+    The index at which to start searching backwards. Defaults to the array's length minus one (arr.length - 1), 
+    i.e. the whole array will be searched. If the index is greater than or equal to the length of the array, the 
+    whole array will be searched. If negative, it is taken as the offset from the end of the array. Note that even 
+    when the index is negative, the array is still searched from back to front. If the calculated index is less 
+    than 0, -1 is returned, i.e. the array will not be searched.
+    
+Return value:
+  The last index of the element in the array; -1 if not found.
+
+Example 1:
+  let beasts = ['ant', 'bison', 'camel', 'duck', 'bison'];
+
+  console.log(lastIndexOf(beasts, 'bison'));
+  // expected output: 4
+
+  // start from index 2
+  console.log(lastIndexOf(beasts, 'bison', -2));
+  // expected output: 2
+
+  console.log(lastIndexOf(beasts, 'giraffe'));
+  // expected output: -1
+**/
+  
+  
+  function lastIndexOf(array, searchElement, fromIndex) {
+    let i;
+    //check if optional fromIndex was supplied and it is a number
+    if (fromIndex && typeof(fromIndex) === 'number') {
+      //if fromIndex is negative, it is taken as the offset from the end of the array.
+      if (fromIndex < 0) {
+        //fromIndex is negative, so we need to add array.length + fromIndex (double subtraction is addition)
+        i = array.length + fromIndex;
+        //i cannot be less than zero.  If so, make it zero.
+        if (i < 0) {
+          return -1;
+        }
+      } else if (fromIndex >= array.length) {
+        i = array.length - 1;
+      } else {
+        i = fromIndex;
+      }
+      //default i value if fromIndex is not provided
+    } else {
+      i = array.length - 1; 
+    }
+    for (i; i >= 0; i--) {
+      if (array[i] === searchElement) {
+        return i
+      }
+    }
+    return -1
+  }
+  
+
+ 
+  tests({
+    'it returns the last index at which a given element can be found in the array': () => {
+      let results = lastIndexOf([1,2,1], 1);
+      eq(results, 2);
+    },
+    
+    'it returns -1 if element cannot be found in the array': () => {
+      let results = lastIndexOf([1,2,1], 5);
+      eq(results, -1);
+    },
+    
+    'the array is searched backwards': function() {
+      let indices = [];
+      let array = ['a', 'b', 'a'];
+      let element = 'a';
+      let idx = array.lastIndexOf(element);
+      while (idx != -1) {
+        indices.push(idx);
+        idx = (idx > 0 ? array.lastIndexOf(element, idx - 1) : -1);
+      }
+      eq(indices[0], 2);
+      eq(indices[1], 0);
+    },
+    
+    'it accepts 3 arguements: the array to be called upon': () => {
+      let indices = [];
+      let array = ['a', 'a', 'a'];
+      let element = 'a';
+      let idx = array.lastIndexOf(element);
+      while (idx != -1) {
+        indices.push(idx);
+        idx = (idx > 0 ? array.lastIndexOf(element, idx - 1) : -1);
+      }
+      eq(indices.length, 3);
+    },
+    
+    'it accepts 3 arguements: searchElement': () => {
+      let results = lastIndexOf([1,2,1], 1);
+      eq(results, 2);
+    },
+    
+    'it accepts 3 arguements: optional fromIndex': () => {
+      let results = lastIndexOf([1,2,1], 1, 1);
+      eq(results, 0);
+    },
+    
+    'If the provided fromIndex value is a negative number, it is taken as the offset from the end of the array.': () => {
+      let results = lastIndexOf([1,2,1], 1, -3);
+      eq(results, 0);
+    },
+    
+    'If the provided fromIndex value is a negative number && (fromIndex + array.length < 0) return -1': () => {
+      let results = lastIndexOf([1,2,1], 1, -13);
+      eq(results, -1);
+    },
+    
+    ' If the fromIndex is greater than or equal to the length of the array, the whole array will be searched.': () => {
+      let results = lastIndexOf([1,2,1], 1, 13);
+      eq(results, 2);
+    },
+    
+    'fromIndex defaults to array.length-1 if not specified': () => {
+      let results = lastIndexOf([1,2,1], 1, 'five');
+      eq(results, 2);
+    },
+    
+    'lastIndexOf() compares searchElement to elements of the Array using strict equality': () => {
+      let results = lastIndexOf([1,2,1], '2');
+      eq(results, -1);
+    },
+    
+  });
+</script>
