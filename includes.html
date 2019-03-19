@@ -54,15 +54,17 @@ Example 2:
           i = 0;
         }
       } else if (fromIndex >= array.length) {
-        i = array.length - 1;
-      } 
-    }
-    for (i; i >= 0; i--) {
-      if (array[i] === searchElement) {
-        return i
+        return false;
+      } else {
+        i = fromIndex;
       }
     }
-    return -1
+    for (i; i < array.length; i++) {
+      if (array[i] === searchElement || (Number.isNaN(array[i]) && Number.isNaN(searchElement))) {
+        return true
+      }
+    }
+    return false
   }
   
   //used for tests
@@ -110,6 +112,10 @@ Example 2:
       eq(includes(['a', 'B'], 'a', -5000), true);
     },
     
+     'It should return false if fromIndex >= array.length.': () => {
+       eq(includes(['a', 'B'], 'a', 5000), false);
+     },
+    
     'it works on array-like objects': () => {
       let arrayLike1 = {length: 0};                     // like []
       let arrayLike2 = {0: 'foo', 5: 'bar', length: 6}; // like ["foo", undefined × 4, "bar"]
@@ -121,6 +127,18 @@ Example 2:
       eq(includes(['a', 'B'], 'A'), false);
     },
     
+    'it returns true when finding NaN values': () => {
+      eq(includes(['a', NaN], NaN), true);
+    },
+    
+    'It should return false for an empty array.': () => {
+      eq(includes([], undefined), false);
+    },
+    
+    'If no searchElement, return false, except for an array of undefined/s.': function () {
+      eq(includes([undefined]), true);
+      eq(includes([1]), false);
+    },
    
   });
 </script>
