@@ -1,0 +1,223 @@
+<script src="/tinytest_dom_edition.js"></script>
+<script>
+/** 
+Purpose:
+  The slice() method returns a shallow copy of a portion of an array into a new array object selected from begin to end 
+  (end not included). The original array will not be modified.
+
+Syntax:
+  slice(array, [begin[, end]])
+  
+Parameters:
+  1) begin Optional
+      a) Zero-based index at which to begin extraction.
+      b) A negative index can be used, indicating an offset from the end of the sequence. slice(-2) 
+        extracts the last two elements in the sequence.
+      c) If begin is undefined, slice begins from index 0.
+      d) If begin is greater than the length of the sequence, an empty array is returned.
+  2) end Optional
+    a) Zero-based index before which to end extraction. slice extracts up to but not including end.
+      For example, slice(1,4) extracts the second element through the fourth element (elements indexed 1, 2, and 3).
+    c) A negative index can be used, indicating an offset from the end of the sequence. slice(2,-1) extracts the third element 
+      through the second-to-last element in the sequence.
+    d) If end is omitted, slice extracts through the end of the sequence (arr.length).
+    e) If end is greater than the length of the sequence, slice extracts through to the end of the sequence (arr.length).
+    
+Return value:
+   returns a shallow copy of a portion of an array into a new array object 
+
+Example 1:
+  var animals = ['ant', 'bison', 'camel', 'duck', 'elephant'];
+
+  console.log(slice(animals,2));
+  // expected output: Array ["camel", "duck", "elephant"]
+
+**/
+  
+  function slice(array, begin, end) {
+    let results = [];
+    let i = begin || 0;
+    let endValue = array.length - 1;
+    
+    if (end) {
+      if (end < 0) {
+        endValue = array.length + end - 1;
+      } 
+      
+      if (end <= array.length && end > 0) {
+        endValue = end - 1;
+      }
+    }
+    
+    if (begin < 0) {
+     i = array.length + begin; 
+    }
+    
+    if (typeof(begin) !== 'number') {
+     i = 0; 
+    }
+    
+    if (begin === true) {
+     i = 1; 
+    }
+    
+    
+    
+    for (i; i <= endValue; i++) {
+     results.push(array[i]);
+    }
+    return results
+  }
+ 
+  tests({
+    //return value tests
+    'it returns an array': function() {
+      let array1 = [5, 12, 8, 130, 44];
+      eq(Array.isArray(slice(array1)), true);
+    },
+    
+    'it returns a shallow copy': function() {
+      let array1 = [[5]];
+      eq(slice(array1)[0], array1[0]);
+    },
+    
+    //begin tests
+    'A negative index can be used for begin, indicating an offset from the end of the sequence.': function() {
+      let array1 = [5, 12, 8, 130, 44];
+      let results = slice(array1, -1);
+      eq(results[0], 44);
+      eq(results.length, 1);
+    },
+    
+    'If begin is undefined, slice begins from index 0.': function() {
+      let array1 = [5, 12, 8, 130, 44];
+      let results = slice(array1);
+      eq(results[0], 5);
+      eq(results.length, 5);
+    },
+    
+    'If begin is greater than the length of the sequence, an empty array is returned.': function() {
+      let array1 = [5, 12, 8, 130, 44];
+      let results = slice(array1, 50);
+      eq(results[0], undefined);
+      eq(results.length, 0);
+    },
+    
+    'If begin is not a number, it begins from index 0, except for true.': function () {
+      var result = slice([1, 2], []);
+      eq(result[0], 1);
+      eq(result[1], 2);
+      var result = slice([1, 2], 'hi');
+      eq(result[0], 1);
+      eq(result[1], 2);
+      var result = slice([1, 2], false);
+      eq(result[0], 1);
+      eq(result[1], 2);
+      var result = slice([1, 2], {});
+      eq(result[0], 1);
+      eq(result[1], 2);
+      var result = slice([1, 2], function () {});
+      eq(result[0], 1);
+      eq(result[1], 2);
+      var result = slice([1, 2], null);
+      eq(result[0], 1);
+      eq(result[1], 2);
+      var result = slice([1, 2], NaN);
+      eq(result[0], 1);
+      eq(result[1], 2);
+      var result = slice([1, 2], undefined);
+      eq(result[0], 1);
+      eq(result[1], 2);
+    },
+    
+    'If begin is true, it begins from index 1, extracts through the end of the sequence.': function () {
+      var result = slice([1, 2], true);
+      eq(result[0], 2);
+ 
+      var result = slice([1, 2, 3], true);
+      eq(result.length, 2);
+      eq(result[0], 2);
+      eq(result[1], 3);
+    },
+    
+    //end tests
+    'slice extracts up to but not including end.': function() {
+      let array1 = [5, 12, 8, 130, 44];
+      let results = slice(array1, 0, 1);
+      eq(results[0], 5);
+      eq(results.length, 1);
+    },
+    
+    'A negative index can be used for end, indicating an offset from the end of the sequence.': function() {
+      let array1 = [5, 12, 8, 130, 44];
+      let results = slice(array1, 3, -1);
+      eq(results[0], 130);
+      eq(results.length, 1);
+    },
+    
+    'If end is omitted, slice extracts through the end of the sequence (arr.length)': function() {
+      let array1 = [5, 12, 8, 130, 44];
+      let results = slice(array1, 3);
+      eq(results[0], 130);
+      eq(results[1], 44);
+      eq(results.length, 2);
+    },
+    
+    'If end is greater than the length of the sequence, slice extracts through to the end of the sequence': function() {
+      let array1 = [5, 12, 8, 130, 44];
+      let results = slice(array1, 3, 50);
+      eq(results[0], 130);
+      eq(results[1], 44);
+      eq(results.length, 2);
+    },
+    
+    'If end is true, return a new array contains the first element.': function () {
+      var result = slice([1, 2, 3], 0, true);
+      eq(result.length, 1);
+      eq(result[0], 1);
+      var result = slice([2, 3, 4], [], true);
+      eq(result.length, 1);
+      eq(result[0], 2);
+    },
+    
+    //other tests
+    'it does not mutate the array on which it is called.': function() {
+      let array1 = [1, 2];
+      slice(array1);
+      eq(array1[0], 1);
+      eq(array1[1], 2);
+    },    
+    
+    'If both beginIndex and endIndex are true, return an empty array.': function () {
+      var result = slice([1, 2, 3], true, true);
+      eq(result.length, 0);
+    },
+    
+    'It should not skip holes.': function () {
+      var array = [, 1, ,2, ,];
+      var result = slice(array);
+      eq(result.length, array.length);
+    },
+    
+    'It should copy object references into a new array.': function () {
+      var myHonda = {color: 'red', wheels: 4, engine: {cylinders: 4, size: 2.2}};
+      var myCar = [myHonda, 2, 'cherry condition', 'purchased 1997'];
+      var newCar = slice(myCar, 0, 2);
+      myHonda.color = 'purple';
+      eq(myCar[0].color, 'purple');
+      eq(newCar[0].color, 'purple');
+    },
+    
+    'It can be called to convert array-like objects to a new Array.': function () {
+      function list() {
+        return slice(arguments);
+      }
+      var result = list(1, 2, 3);
+      eq(result.length, 3);
+      eq(result[0], 1);
+      eq(result[1], 2);
+      eq(result[2], 3);
+    }
+    
+  });
+</script>

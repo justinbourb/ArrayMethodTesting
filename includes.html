@@ -1,0 +1,144 @@
+<script src="/tinytest_dom_edition.js"></script>
+<script>
+/** 
+Purpose:
+  The includes() method determines whether an array includes a certain value among its entries, returning
+  true or false as appropriate.
+
+Syntax:
+  includes(array, valueToFind[, fromIndex])
+  
+Parameters:
+  1) valueToFind
+    The value to search for.
+    Note: When comparing strings and characters, includes() is case-sensitive.
+
+  2) fromIndex Optional
+    The position in this array at which to begin searching for valueToFind; the first character to be 
+    searched is found at fromIndex for positive values of fromIndex, or at array.length + fromIndex for 
+    negative values of fromIndex (using the absolute value of fromIndex as the number of characters from 
+    the end of the string at which to start the search). Defaults to 0.
+    
+Return value:
+  A Boolean which is true if the value valueToFind is found within the array 
+  (or the part of the array indicated by the index fromIndex, if specified). 
+  
+  Values of zero are all considered to be equal regardless of sign (that is, -0 is considered to be 
+  equal to both 0 and +0), but false is not considered to be the same as 0.
+
+Example 1:
+  includes([1, 2, 3], 2);     // true
+  includes([1, 2, 3], 4);     // false
+  includes([1, 2, 3], 3, 3);  // false
+  includes([1, 2, 3], 3, -1); // true
+  includes([1, 2, NaN], NaN); // true
+
+Example 2:
+  (function() {
+    console.log([].includes.call(arguments, 'a')); // true
+    console.log([].includes.call(arguments, 'd')); // false
+  })('a','b','c');
+**/
+  
+  function includes(array, searchElement, fromIndex) {
+    //default i value if fromIndex is not provided
+    let i = 0;
+    //check if optional fromIndex was supplied and it is a number
+    if (fromIndex && typeof(fromIndex) === 'number') {
+      //if fromIndex is negative, it is taken as the offset from the end of the array.
+      if (fromIndex < 0) {
+        //fromIndex is negative, so we need to add array.length + fromIndex (double subtraction is addition)
+        i = array.length + fromIndex;
+        //i cannot be less than zero.  If so, make it zero.
+        if (i < 0) {
+          i = 0;
+        }
+      } else if (fromIndex >= array.length) {
+        return false;
+      } else {
+        i = fromIndex;
+      }
+    }
+    for (i; i < array.length; i++) {
+      if (array[i] === searchElement || (Number.isNaN(array[i]) && Number.isNaN(searchElement))) {
+        return true
+      }
+    }
+    return false
+  }
+  
+  //used for tests
+  function isLargeNumber(element) {
+    return element > 13;
+  }
+ 
+  tests({
+    'it returns true if valueToFind is present': function() {
+      let array1 = [5];
+      eq(includes(array1, 5), true);
+    },
+    
+    'Otherwise, it returns false, indicating valueToFind was not present': function() {
+      let array1 = [5];
+      eq(includes(array1, 6), false);
+    },
+    
+    'it does not mutate the array on which it is called.': function() {
+      let array1 = [1, 2];
+      includes(array1, 2);
+      eq(array1[0], 1);
+      eq(array1[1], 2);
+    },
+    
+    'it equates 0 === -0 === +0': () => {
+      eq(includes([0], -0), true);
+      eq(includes([0], +0), true);
+      eq(includes([-0], +0), true);
+    },
+    
+    'it accepts an optional fromIndex arguement': () => {
+      eq(includes(['a', 'B'], 'a', 1), false);
+    },
+    
+    'fromIndex defaults to 0': () => {
+      eq(includes(['a', 'B'], 'a'), true);
+    },
+    
+    'If negative, fromIndex begins searching from array.length + fromIndex':  () => {
+      eq(includes(['a', 'B'], 'a', -1), false);
+    },
+    
+    'for fromIndex values which cause calculatedIndex to be < 0, searching begins at 0': () => {
+      eq(includes(['a', 'B'], 'a', -5000), true);
+    },
+    
+     'It should return false if fromIndex >= array.length.': () => {
+       eq(includes(['a', 'B'], 'a', 5000), false);
+     },
+    
+    'it works on array-like objects': () => {
+      let arrayLike1 = {length: 0};                     // like []
+      let arrayLike2 = {0: 'foo', 5: 'bar', length: 6}; // like ["foo", undefined × 4, "bar"]
+      eq(includes(arrayLike2, 'foo'), true);
+    },
+    
+    'it is case senstive when comparing strings and characters': () => {
+      eq(includes(['a', 'B'], 'a'), true);
+      eq(includes(['a', 'B'], 'A'), false);
+    },
+    
+    'it returns true when finding NaN values': () => {
+      eq(includes(['a', NaN], NaN), true);
+    },
+    
+    'It should return false for an empty array.': () => {
+      eq(includes([], undefined), false);
+    },
+    
+    'If no searchElement, return false, except for an array of undefined/s.': function () {
+      eq(includes([undefined]), true);
+      eq(includes([1]), false);
+    },
+   
+  });
+</script>
