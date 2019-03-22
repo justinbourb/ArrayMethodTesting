@@ -1,0 +1,138 @@
+<script src="/tinytest_dom_edition.js"></script>
+<script>
+/** 
+Purpose:
+  The join() method creates and returns a new string by concatenating all of the elements in an array (or an array-like object), 
+  separated by commas or a specified separator string. If the array has only one item, then that item will be returned without 
+  using the separator.
+
+Syntax:
+  join(array, separator)
+  
+Parameters:
+  1) separator Optional
+    a) Specifies a string to separate each pair of adjacent elements of the array. 
+    b) The separator is converted to a string if necessary. 
+    c) If omitted, the array elements are separated with a comma (","). 
+    d) If separator is an empty string, all elements are joined without any characters in between them.
+    
+Return value:
+   1) A string with all array elements joined. 
+   2) If arr.length is 0, the empty string is returned.
+
+Example 1:
+  var elements = ['Fire', 'Wind', 'Rain'];
+
+  console.log(join(elements));
+  // expected output: "Fire,Wind,Rain"
+
+  console.log(join(elements, ''));
+  // expected output: "FireWindRain"
+
+  console.log(join(elements, '-'));
+  // expected output: "Fire-Wind-Rain"
+
+**/
+  
+  function join(array, separator) {
+    let results = '';
+    let i = 0;
+    let separatorToUse = ',';
+    
+    if (separator || separator === '') {
+      separatorToUse = separator;
+    }
+    
+     
+    if (array.length !== 0) {
+      for (i; i < array.length; i++) {
+        if (i === array.length-1 && array[i] !== null && array[i] !== undefined) {
+          results += array[i];
+        } else if (array[i] === undefined || array[i] === null)  {
+          results += separatorToUse;
+        } else {
+         results += array[i] + separatorToUse; 
+        }
+      }
+    }
+    return results
+  }
+ 
+  tests({
+    //return tests
+    'it returns a string': function() {
+      let array1 = [5, 12, 8, 130, 44];
+      eq(typeof(join(array1)), 'string');
+    },
+    
+    'it returns a string with all array elements joined. ': () => {
+      let array1 = [5, 12, 8, 130, 44];
+      eq(join(array1), '5,12,8,130,44');
+    },
+    
+    'If arr.length is 0, the empty string is returned.': function() {
+      let array1 = [];
+      eq(join(array1), '');
+    },
+    
+    //separator tests
+    'The separator specifies a string to separate each pair of adjacent elements of the array. ': function() {
+      let elements = ['Fire', 'Wind', 'Rain'];
+      eq(join(elements, '-'), "Fire-Wind-Rain");
+  
+    },
+    
+    'The separator is converted to a string if necessary.': function() {
+      let elements = ['Fire', 'Wind', 'Rain'];
+      eq(join(elements, 1), "Fire1Wind1Rain");
+    },
+    
+    'If omitted, the array elements are separated with a comma (",").': function() {
+      let elements = ['Fire', 'Wind', 'Rain'];
+      eq(join(elements), "Fire,Wind,Rain");
+    },
+    
+    'If separator is an empty string, all elements are joined without any characters in between them.': function () {
+      let elements = ['Fire', 'Wind', 'Rain'];
+      eq(join(elements, ''), "FireWindRain");
+    },
+    
+    'If an element is undefined, null, or an empty string, and separator is ommited, array elements are joined with a comma as separator.': function() {
+      var result = join([,,,,undefined, null, NaN, '',]);
+      eq(result, ",,,,,,NaN,");
+    },
+    'If there are holes, and there is an optionalSeparator, array elements are separated with optionalSeparator.': function() {
+      var result = join([,undefined,,,,null], '+');
+      eq(result, "++++++");
+    },
+    'If there are holes, and optionalSeparator is an empty string, all elements are joined together.': function() {
+      var result = join([1,,,,undefined, 1, ,null,2, 3], '');
+      eq(result, "1123");
+    },
+    
+    //other tests
+        
+    'It can be called to convert array-like objects to a new string.': function () {
+      function list() {
+        return join(arguments);
+      }
+      
+      let result = list(1, 'a', true);
+      eq(result, '1,a,true');
+    },
+    
+    'It should return a string representing the object.': function () {
+      var result = join([{}, {hi: "hi"}]);
+      eq(result, "[object Object],[object Object]");
+    },
+    'It should work for nested arrays.': function () {
+      var result = join(['one', ['two', ['three', ['four'], 'five']]]);
+      eq(result, "one,two,three,four,five");
+    },
+    'It should work for functions.': function () {
+      var result = join([function hey(){}, function hi(){},]);
+      eq(result, "function hey(){},function hi(){}");
+    }
+    
+  });
+</script>
