@@ -56,12 +56,22 @@ Example 1:
         
         //If length is a positive decimal number, its integer part will be used as length.
         if (array.length % 1 > 0) {
-          array.length = array.length - (array.length%1) - 1;
+          array.length = array.length - (array.length%1);
         }
+        
+        //if length < 0, set it to 0;
+        if (array.length < 0) {
+          array.length = 0;
+        }
+        
+        //add the element to the array
+        whereToPush[whereToPush.length] = args[i];
         array.length++;   
+      } else {
+       //add the element to the array
+        whereToPush[whereToPush.length] = args[i]; 
       }
-      //add the element to the array
-      whereToPush[whereToPush.length] = args[i];
+      
       
       
     }
@@ -136,7 +146,7 @@ Example 1:
       var obj = {
         length: 0,
         addElem: function addElem(elem) {
-          push(this, elem);//[].push.call(this, elem);
+          push.call([], this, elem);
         }
       };
       obj.addElem({});
@@ -159,7 +169,7 @@ Example 1:
       push(obj, 'what');
       eq(obj[0], "lu");
       eq(obj[1], 'what');
-      eq(obj.length, 1);
+      eq(obj.length, 2);
     },
     
     'If length is a positive decimal number, its integer part will be used as length.': function () {
@@ -178,21 +188,6 @@ Example 1:
       push(obj, 'lu');
       eq(obj[0], "lu");
       eq(obj.length, 1);
-    },
-    
-    'If length is nonexistent, length will be created and will be 0.': function () {
-      var obj = {
-        0: "traveling",
-        1: "rock climbing",
-        2: "sailing"
-      };
-      push(obj, "running");
-      eq(obj[0], "running");
-      eq(obj[1], "rock climbing");
-      eq(obj[2], "sailing");
-      eq(obj.length, 1);
-    }
-    
-    
+    }    
   });
 </script>
