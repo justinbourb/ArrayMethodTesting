@@ -1,0 +1,193 @@
+<script src="/tinytest_dom_edition.js"></script>
+<script>
+/** 
+Purpose:
+  The push() method adds one or more elements to the end of an array and returns the new length of the array.
+
+Syntax:
+  push(array, element1[, ...[, elementN]])
+  
+Parameters:
+  1) elementN
+    The elements to add to the end of the array.
+
+    
+Return value:
+   1) The new length property of the object upon which the method was called.
+
+Example 1:
+  var animals = ['pigs', 'goats', 'sheep'];
+
+  console.log(push(animals, 'cows'));
+  // expected output: 4
+
+  console.log(animals);
+  // expected output: Array ["pigs", "goats", "sheep", "cows"]
+
+**/
+  
+  /** using call with array-like object
+  
+  results: 
+    1) obj.length ++
+    2) obj.push (element)
+    
+  **/
+  
+  function push(array, ...args) {
+    let i = 0;
+    let whereToPush = array;
+    
+    //logic to cover apply usage (apply coerces our array to be the this value, thus it has a length)
+    if (this.length > 0) {
+      whereToPush = this;
+      //apply coerces array to === our first arg to push
+      whereToPush[whereToPush.length] = array;
+    }
+     
+    for (i; i < args.length; i++) {
+      //only increments length for array-like objects with length property
+      if (Object.keys(array).includes('length')) {
+        //if length is not a number, use 0
+        if (typeof(array.length) !== 'number') {
+          //should start at index 0 for first call
+          array.length = -1;
+        }
+        
+        //If length is a positive decimal number, its integer part will be used as length.
+        if (array.length % 1 > 0) {
+          array.length = array.length - (array.length%1);
+        }
+        
+        //if length < 0, set it to 0;
+        if (array.length < 0) {
+          array.length = 0;
+        }
+        
+        //add the element to the array
+        whereToPush[whereToPush.length] = args[i];
+        array.length++;   
+      } else {
+       //add the element to the array
+        whereToPush[whereToPush.length] = args[i]; 
+      }
+      
+      
+      
+    }
+    
+    return whereToPush.length
+  }
+ 
+  tests({
+    //return tests
+    'it returns array.length': function() {
+      let array1 = [5, 12, 8, 130, 44];
+      eq(push(array1, 6), 6);
+    },
+    
+    //other tests
+    'it appends the element to the array': () => {
+      let array1 = [5, 12, 8, 130, 44];
+      push(array1, 6);
+      eq(array1[5], 6);
+    },
+    
+    'it can use apply() to push all elements from a second array.': function() {
+      var vegetables = ['parsnip', 'potato'];
+      var moreVegs = ['celery', 'beetroot'];
+
+      // Merge the second array into the first one
+      // Equivalent to vegetables.push('celery', 'beetroot');
+      push.apply(vegetables, moreVegs);
+
+      eq(vegetables[0], 'parsnip');
+      eq(vegetables[1], 'potato');
+      eq(vegetables[2], 'celery');
+      eq(vegetables[3], 'beetroot');
+      eq(vegetables.length, 4);
+    },
+    
+    'it can use call() on array-like objects': function() {
+      var obj = {
+        length: 0,
+
+        addElem: function addElem(elem) {
+          // obj.length is automatically incremented 
+          // every time an element is added.
+          push.call([], this, elem);
+        }
+      };
+
+      // Let's add some empty objects just to illustrate.
+      obj.addElem({});
+      obj.addElem({});
+      eq(obj.length, 2);  
+    },
+    
+    'it accepts any number of arguments': function() {
+      let array1 = [];
+      eq(push(array1, 5, 12, 8, 130, 44, 6), 6);
+    },
+    
+    'It should handle different data types.': function () {
+      var array = [];
+      var three = ['three'];
+      var four = {four: 'four'};
+      var five = function () {};
+      push(array, 1, 'two', three, four, five);
+      var comparison = [1, 'two', three, four, five];
+      comparison.forEach(function (ele, i) {
+        eq(ele, array[i]);
+      });
+    },
+    
+    'It should work for an array-like object.': function () {
+      var obj = {
+        length: 0,
+        addElem: function addElem(elem) {
+          push.call([], this, elem);
+        }
+      };
+      obj.addElem({});
+      obj.addElem({});
+      eq(JSON.stringify(obj), '{"0":{},"1":{},"length":2}');
+    },
+    
+    'It increase the length property of object for each element pushed.': function () {
+      var obj = {length: 0};
+      push(obj, 1);
+      push(obj, "hi");
+      eq(obj[0], 1);
+      eq(obj[1], "hi");
+      eq(obj["length"], 2);
+    },
+    
+    'If length property cannot be converted into a number, use 0.': function () {
+      var obj = {length: 'chujun'};
+      push(obj, 'lu');
+      push(obj, 'what');
+      eq(obj[0], "lu");
+      eq(obj[1], 'what');
+      eq(obj.length, 2);
+    },
+    
+    'If length is a positive decimal number, its integer part will be used as length.': function () {
+      var obj = {length: 3.44};
+      push(obj, 'lu');
+      eq(obj[3], "lu");
+      eq(obj.length, 4);
+      var objTwo = {length: 3.84};
+      push(objTwo, 'lu');
+      eq(objTwo[3], "lu");
+      eq(objTwo.length, 4);
+    },
+    
+    'If length < 0, length = 0.': function () {
+      var obj = {length: -2};
+      push(obj, 'lu');
+      eq(obj[0], "lu");
+      eq(obj.length, 1);
+    }    
+  });
+</script>
