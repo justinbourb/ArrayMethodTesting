@@ -1,0 +1,181 @@
+<script src="/tinytest_dom_edition.js"></script>
+<script>
+/** 
+Purpose:
+  The shift() method removes the first element from an array and returns that removed element. 
+  This method changes the length of the array.
+
+Syntax:
+  shift(array)
+  
+Parameters:
+  n/a
+    
+Return value:
+   1) The removed element from the array.
+   2) undefined if the array is empty.
+
+Example 1:
+  var animals = ['pigs', 'goats', 'sheep'];
+
+  console.log(shift(animals));
+  // expected output: 'pigs'
+
+  console.log(animals);
+  // expected output: Array ["goats", "sheep"]
+
+**/
+  
+  
+  function shift(array) {
+    let result;
+    //handeling array-like objects
+    if (Object.keys(array).includes('length')) {
+     let oldLength = array.length;
+     //try to convert a string to a number
+     try {
+       array.length = parseInt(array.length)
+       if (isNaN(array.length)){
+         array.length = oldLength;
+       }
+     } catch (e) {}
+
+      //if length is not a number, use 0
+      if (typeof(array.length) !== 'number') {
+        //should start at index 0 for first call
+        array.length = 0;
+      }
+
+      //If length is a positive decimal number, its integer part will be used as length.
+      if (array.length % 1 > 0) {
+        array.length = array.length - (array.length%1);
+      }
+
+      //if length < 0, set it to 0;
+      if (array.length <= 0) {
+        array.length = 0;
+        return
+      } 
+    }
+    
+    try {
+      result = array[0];
+      for (let i = 0; i < array.length; i++) {
+        array[i] = array[i+1]
+      }
+      //decremenets length and removes elements for arrays
+      array.length -= 1;
+      //removes entry for array-like objects
+      delete array[array.length]
+      
+      if (isNaN(array.length)) {
+       array.length = 0; 
+      }
+      
+    } catch (e) {
+      result = undefined; 
+    }
+    
+    return result
+  }
+ 
+  tests({
+    //return tests
+    'it returns the removed element': function() {
+      let array1 = [5, 12, 8, 130, 44];
+      eq(shift(array1), 5);
+    },
+    
+    //other tests
+    'it removes the first element from the array': () => {
+      let array1 = [5, 12, 8, 130, 44];
+      shift(array1);
+      eq(array1[0], 12)
+    },
+    
+    'it shortens the array': () => {
+     let array1 = [5, 12, 8, 130, 44];
+      shift(array1);
+      eq(array1.length, 4); 
+    },
+    
+    'The shift method shifts the values at consecutive indexes down': () => {
+      let array1 = [5, 12, 8, 130, 44];
+      shift(array1);
+      eq(array1[0], 12); 
+      eq(array1[1], 8); 
+      eq(array1[2], 130);
+      eq(array1[3], 44); 
+    },
+    
+    'If array is empty, return undefined.': function() {
+      var result = shift([]);
+      eq(result, undefined);
+    },
+    
+    'It should work for holes.': function () {
+      var array = [,,,];
+      var result = shift(array);
+      eq(result, undefined);
+      eq(array.length, 2);
+    },
+    'It should work for an array-like object.': function () {
+      var object = {
+        length: 3,
+        0: 'traveling',
+        1: 'rock climbing',
+        2: 'sailing'
+      }
+      var result = shift(object);
+      eq(result, "traveling");
+      eq(2 in object, false);
+      eq(object[0], 'rock climbing');
+    },
+    
+    'If the length property cannot be converted to a number, length will be 0. Remove nothing.': function () {
+      var object = {
+        0: 'traveling',
+        length: 'chujun'
+      };
+      var result = shift(object);
+      eq(object[0], "traveling");
+      eq(object.length, 0);
+    },
+    
+    'If called on an object with length property as 0, nothing will be removed.': function () {
+      var object = {
+        0: 'traveling',
+        length: 0
+      };
+      var result = shift(object);
+      eq(result, undefined);
+      eq(object[0], "traveling");
+      eq(object.length, 0);
+    },
+    
+    'If length < 0, length will be 0 and nothing will be removed.': function () {
+      var object = {
+        0: 'traveling',
+        length: -1.8
+      };
+      var result = shift(object);
+      eq(result, undefined);
+      eq(object[0], "traveling");
+      eq(object.length, 0);
+    },
+    
+    'If object.length is not accurate, it still removes the zeroeth porperty.': function () {
+      var object = {
+        0: 'traveling',
+        1: 'rock climbing',
+        length: 1
+      };
+      var result = shift(object);
+      eq(result, "traveling");
+      eq(0 in object, false);
+      eq(object[1], "rock climbing");
+      eq(object.length, 0);
+    },
+    
+  });
+</script>
