@@ -50,11 +50,13 @@ tests({
       var result = unshift(array, 0);
       eq(result, 3);
     },
+  
     'It should add one element to the front of an array.': function () {
       var array = [1, 2];
       unshift(array, 0);
       eq(array[0], 0);
     },
+  
     'It adds n elements to array at a given order.': function () {
       var fish = ['clown'];
       unshift(fish, 'angel', 'sturgeon');
@@ -62,16 +64,19 @@ tests({
       eq(fish[1], 'sturgeon');
       eq(fish[2], 'clown');
     },
-    'If there are not elements to add, return the original array.length.': function () {
+  
+    'If there are no elements to add, return the original array.length.': function () {
       var array = [1];
       var result = unshift(array);
       eq(result, 1);
     },
+  
     'It works for holes.': function () {
       var array = [,,,];
       var result = unshift(array, undefined);
       eq(result, 4);
     },
+  
     'It can be called or applied to an array-like object.': function () {
       var object = {
         length: 3,
