@@ -1,0 +1,88 @@
+<script src="/tinytest_dom_edition.js"></script>
+<script>
+/** 
+Purpose:
+The unshift() method adds one or more elements to the beginning of an array and returns 
+the new length of the array.
+
+Syntax:
+unshift(array, element1[, ...[, elementN]]);
+  
+Parameters:
+1) elementN
+  The elements to add to the front of the array.
+    
+Return value:
+The new length property of the object upon which the method was called.
+
+Example 1
+The following code unshifts two arrays::
+var array1 = ['a', 'b', 'c'];
+var array2 = ['d', 'e', 'f'];
+
+console.log(unshift(array1, array2));
+// expected output: Array ["d", "e", "f", "a", "b", "c"]
+
+**/
+  
+//... uses the ES6 feature rest to accept any number of inputs
+function unshift(array, ...args) {
+  //add array to the end of args
+  for (let i = 0; i < array.length; i++) {
+    args.push(array[i]);
+  }
+  //set "unshift" array values
+  for (let j = 0; j < args.length; j++) {
+    array[j] = args[j];
+  }
+  
+  //sets array-like object's length element manually
+  if (array.length !== args.length) {
+    array.length = args.length; 
+  }
+  
+  return array.length
+}
+  
+tests({
+   'It should return the new length.': function () {
+      var array = [1, 2];
+      var result = unshift(array, 0);
+      eq(result, 3);
+    },
+    'It should add one element to the front of an array.': function () {
+      var array = [1, 2];
+      unshift(array, 0);
+      eq(array[0], 0);
+    },
+    'It adds n elements to array at a given order.': function () {
+      var fish = ['clown'];
+      unshift(fish, 'angel', 'sturgeon');
+      eq(fish[0], 'angel');
+      eq(fish[1], 'sturgeon');
+      eq(fish[2], 'clown');
+    },
+    'If there are not elements to add, return the original array.length.': function () {
+      var array = [1];
+      var result = unshift(array);
+      eq(result, 1);
+    },
+    'It works for holes.': function () {
+      var array = [,,,];
+      var result = unshift(array, undefined);
+      eq(result, 4);
+    },
+    'It can be called or applied to an array-like object.': function () {
+      var object = {
+        length: 3,
+        0: "traveling",
+        1: "rock climbing",
+        2: "sailing"
+      };
+      unshift(object, "surfing");
+      eq(object.length, 4);
+      eq(object[0], "surfing");
+    }
+
+});
+</script>
