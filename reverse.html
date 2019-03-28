@@ -1,0 +1,72 @@
+<script src="/tinytest_dom_edition.js"></script>
+<script>
+/** 
+Purpose:
+The reverse() method reverses an array in place. The first array element becomes the last,
+and the last array element becomes the first.
+
+Syntax:
+reverse(array);
+  
+Parameters:
+The array to reverse.
+    
+Return value:
+The reverse method transposes the elements of the calling array object in place, mutating the array,
+and returning a reference to the array.
+
+Example 1:
+const a = [1, 2, 3];
+
+console.log(a); // [1, 2, 3]
+
+reverse(a);
+
+console.log(a); // [3, 2, 1]
+**/
+  
+function reverse(array) {
+  let length = array.length;
+  let temp;
+  let midPoint = (array.length - 2) / 2;
+
+  //reverse values in place using only one placeholder / copied value at a time (temp)
+  for (let i = 0; i <= midPoint; i++) {
+    let temp = array[i]
+    array[i] = array[length - 1 - i]; 
+    array[length - 1 - i] = temp;
+  }
+  
+  return array
+}
+  
+tests({
+  //return value tests
+  'It should return an array': function () {
+    let array = [1, 2];
+    let results = reverse(array);
+    eq(Array.isArray(results), true);
+  },
+  
+  'it returns the reversed array': function () {
+    let array = [1, 2];
+    let results = reverse(array);
+    eq(JSON.stringify(results), "[2,1]");
+  },
+  
+  'it works on longer arrays': () => {
+    let array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    let results = reverse(array);
+    eq(JSON.stringify(results), "[10,9,8,7,6,5,4,3,2,1]");
+  },
+  
+  //array-like object tests
+  'it works on array-like objects': () => {
+    let array = {0: 1, 1: 2, 2: 3, length: 3};
+    reverse(array);
+    eq(JSON.stringify(array),  '{"0":3,"1":2,"2":1,"length":3}');
+  },
+  
+
+});
+</script>
