@@ -109,24 +109,73 @@ Description:
 
 **/
   
-function sort(array, compareFunction) {
+let months = ['March', 'Jan', 'Feb', 'Dec'];
+  //utf16 sort is not by summation of all charCodeAt(i)
+  //first char code is sorted, then out of everything with the same first char code, a second code is sorted
+  //then everything with same second code, a third code is sorted and so on
   
-  /** How to compare UTF-16 sequence totals:
-  let months = ['March', 'Jan', 'Feb', 'Dec'];
-  
-  months.forEach((elem) => { 
-    let total = 0;
-    for (let i = 0; i < elem.length; i++) {
-      total += elem.charCodeAt(i);
+function utf16Conversion(array, results) {
+  array.forEach((elem) => { 
+    let total = [];
+    for (let i = 0; i < String(elem).length; i++) {
+      total.push(String(elem).charCodeAt(i));
     }
-    console.log(elem + total);
+    results.push(total);
   });
+}
   
-  //results: March491, Jan281, Feb269, Dec268
-  //totals match native sort results
-  //native sort results: expected output: Array ["Dec", "Feb", "Jan", "March"]
   
-  **/
+  
+function sort(array, compareFunction) {
+  let results = [];
+  let copy = array.slice();
+  let min;
+  let temp;
+  let continueCompare;
+  
+  //handles default compare using UTF-16
+  if (!compareFunction) {
+    utf16Conversion(array ,results);  // results = [491, 281, 269, 268]
+    //sort array values lowest to highest
+    for (let j = 0; j < array.length; j++) {
+      min = undefined;
+      temp = undefined;
+      //for each index in array, check entire results array for lowest value
+      for (let i = 0; i < results.length; i++) {
+        //set initial min value
+        if (!min) {
+          min = results[i]; 
+        }
+        //find the smallest value
+        if (results[i] < min) {
+          min = results[i]; 
+        }
+      }
+
+      // sort the lowest value to the first posistion
+      array[j] = copy[results.indexOf(min)];
+      //remove lowest value from results index to prevent duplicates
+      delete results[results.indexOf(min)]
+    }
+  //handles custom case using compareFunction
+  } else {
+    do {
+      continueCompare = false;
+      for (let x = 0; x < array.length - 1; x ++) {
+        results = (compareFunction(array[x], array[x + 1])); 
+        //If compareFunction(a, b) is greater than 0, sort b to an index lower than a (i.e. b comes first).
+        if (results > 0) {
+          temp = array[x];
+          array[x] = array[x + 1];
+          array[x + 1] = temp;
+          delete temp;
+          //any time an item gets sorted, the entire array needs to be checked again
+          continueCompare = true;
+        }
+      }
+    } while (continueCompare === true)
+  }
+    
   
   
   return array
@@ -143,20 +192,23 @@ tests({
   'it returns the modified array': function () {
     let array = [1, 2, 4, 1];
     let results = sort(array);
-    eq(JSON.stringify(results), '["1","1","2","4"]');
+    eq(JSON.stringify(results), '[1,1,2,4]');
   },
   
   'it modifies the original array': () => {
     let array = [1, 2, 4, 1];
     sort(array);
-    eq(JSON.stringify(array), '["1","1","2","4"]');
+    eq(JSON.stringify(array), '[1,1,2,4]');
   },  
     
-  'it sorts by default by comparing the array\'s elements UTF-16 code units values': function () {
+  'it sorts by default by comparing the array\'s elements UTF-16 code units values for strings': function () {
     let months = ['March', 'Jan', 'Feb', 'Dec'];
     sort(months);
     eq(JSON.stringify(months), '["Dec","Feb","Jan","March"]');
 
+  },
+  
+  'it sorts by default by comparing the array\'s elements UTF-16 code units values for numbers': function () {
     let array = [1, 30, 4, 21, 100000];
     sort(array);
     eq(JSON.stringify(array), '[1,100000,21,30,4]');
@@ -167,7 +219,7 @@ tests({
     sort(array, function compareNumbers(a, b) {
       return a - b;
     })
-    eq(JSON.stringify(array), '[2, 3, 4, 5, 10]');
+    eq(JSON.stringify(array), '[2,3,4,5,10]');
   },
   
   'objects can be sorted by their values': () => {
@@ -184,8 +236,8 @@ tests({
     sort(items, function (a, b) {
       return a.value - b.value;
     });
-    eq(JSON.stringify(items), 'placeholder');
+    eq(JSON.stringify(items), '[{"name":"The","value":-12},{"name":"Magnetic","value":13},{"name":"Edward","value":21},{"name":"Sharpe","value":37},{"name":"Zeros","value":37},{"name":"And","value":45}]');
   },
 
 });
-</script>so
+</script>
