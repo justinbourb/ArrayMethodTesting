@@ -109,7 +109,7 @@ Description:
 
 **/
   
-let months = ['March', 'Jan', 'Feb', 'Dec'];
+
   //utf16 sort is not by summation of all charCodeAt(i)
   //first char code is sorted, then out of everything with the same first char code, a second code is sorted
   //then everything with same second code, a third code is sorted and so on
@@ -166,7 +166,9 @@ function sort(array, compareFunction) {
     do {
       continueCompare = false;
       for (let x = 0; x < array.length - 1; x ++) {
-        results = (compareFunction(array[x], array[x + 1])); 
+        if (array[x] !== undefined) {
+          results = (compareFunction(array[x], array[x + 1])); 
+        }
         //If compareFunction(a, b) is greater than 0, sort b to an index lower than a (i.e. b comes first).
         if (results > 0  || (array[x] === undefined && array[x + 1] !== undefined)  ) {
           temp = array[x];
@@ -255,6 +257,16 @@ tests({
     });
     eq(JSON.stringify(results), '[1,1,2,4,null,null]');
   },
+  
+  'It does not run the callback function on undefined elements.': function () {
+      var numbers = [1, 30, undefined, 4, 21, undefined];
+      var numberOfTimesCallbackHasBeenRun = 0;
+      sort(numbers, function (a, b){
+        numberOfTimesCallbackHasBeenRun++
+        return a - b;
+      });
+      eq(numberOfTimesCallbackHasBeenRun, 10)
+    }
 
 });
 </script>
