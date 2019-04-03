@@ -116,15 +116,19 @@ let months = ['March', 'Jan', 'Feb', 'Dec'];
   
 function utf16Conversion(array, results) {
   array.forEach((elem) => { 
-    let total = [];
-    for (let i = 0; i < String(elem).length; i++) {
-      total.push(String(elem).charCodeAt(i));
+    if (elem === undefined) {
+     results.push(undefined); 
+    } else {
+      let total = [];
+      for (let i = 0; i < String(elem).length; i++) {
+        total.push(String(elem).charCodeAt(i));
+      }
+      results.push(total);
     }
-    results.push(total);
   });
 }
   
-  
+ 
   
 function sort(array, compareFunction) {
   let results = [];
@@ -164,7 +168,7 @@ function sort(array, compareFunction) {
       for (let x = 0; x < array.length - 1; x ++) {
         results = (compareFunction(array[x], array[x + 1])); 
         //If compareFunction(a, b) is greater than 0, sort b to an index lower than a (i.e. b comes first).
-        if (results > 0) {
+        if (results > 0  || (array[x] === undefined && array[x + 1] !== undefined)  ) {
           temp = array[x];
           array[x] = array[x + 1];
           array[x + 1] = temp;
@@ -175,7 +179,6 @@ function sort(array, compareFunction) {
       }
     } while (continueCompare === true)
   }
-    
   
   
   return array
@@ -237,6 +240,20 @@ tests({
       return a.value - b.value;
     });
     eq(JSON.stringify(items), '[{"name":"The","value":-12},{"name":"Magnetic","value":13},{"name":"Edward","value":21},{"name":"Sharpe","value":37},{"name":"Zeros","value":37},{"name":"And","value":45}]');
+  },
+  
+  'All undefined elements are sorted to the end of the array': function() {
+    let array = [undefined, 1, undefined, 2, 4, 1];
+    let results = sort(array);
+    eq(JSON.stringify(results), '[1,1,2,4,null,null]');
+  },
+  
+  'All undefined elements are sorted to the end of the array, when using a custom sort function': function() {
+    let array = [undefined, 1, undefined, 2, 4, 1];
+    let results = sort(array, function compareNumbers(a, b) {
+      return a - b;
+    });
+    eq(JSON.stringify(results), '[1,1,2,4,null,null]');
   },
 
 });
